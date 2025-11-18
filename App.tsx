@@ -3,7 +3,7 @@ import { sections } from './constants';
 import { FormData, GroundingChunk } from './types';
 import Accordion from './components/Accordion';
 import { TextInput, TextArea, SelectInput, CheckboxGroup } from './components/FormElements';
-import { runDeepAnalysis, runGroundedAnalysis } from './services/geminiService';
+import { runDeepAnalysis, runGroundedAnalysis } from './services/claudeService';
 import OutputDisplay from './components/OutputDisplay';
 import ChatBot from './components/ChatBot';
 
@@ -56,7 +56,7 @@ const App: React.FC = () => {
     setError('');
   };
 
-  const handleSubmitToGemini = async (type: 'deep' | 'grounded') => {
+  const handleSubmitToAI = async (type: 'deep' | 'grounded') => {
     if (!generatedPrompt) {
       alert("Please generate the prompt first.");
       return;
@@ -158,18 +158,18 @@ const App: React.FC = () => {
                     </button>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <button
-                        onClick={() => handleSubmitToGemini('deep')}
+                        onClick={() => handleSubmitToAI('deep')}
                         disabled={isLoading || !generatedPrompt}
                         className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                       >
-                        {isLoading && activeAnalysis === 'deep' ? renderLoadingButton('Analyzing...') : '2a. Deep Analysis (Pro)'}
+                        {isLoading && activeAnalysis === 'deep' ? renderLoadingButton('Analyzing...') : '2a. Deep Analysis (Opus)'}
                       </button>
                       <button
-                        onClick={() => handleSubmitToGemini('grounded')}
+                        onClick={() => handleSubmitToAI('grounded')}
                         disabled={isLoading || !generatedPrompt}
                         className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                       >
-                        {isLoading && activeAnalysis === 'grounded' ? renderLoadingButton('Searching...') : '2b. Live Data Analysis (Flash)'}
+                        {isLoading && activeAnalysis === 'grounded' ? renderLoadingButton('Analyzing...') : '2b. Fast Analysis (Sonnet)'}
                       </button>
                     </div>
                 </div>
@@ -187,7 +187,7 @@ const App: React.FC = () => {
             )}
 
             {geminiResponse && (
-              <OutputDisplay title="Gemini Analysis" text={geminiResponse} isMarkdown={true} groundingChunks={groundingChunks} />
+              <OutputDisplay title="AI Analysis" text={geminiResponse} isMarkdown={true} groundingChunks={groundingChunks} />
             )}
           </div>
         </div>

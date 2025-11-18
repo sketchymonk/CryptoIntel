@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { createChatSession, sendMessageStream } from '../services/geminiService';
-import type { Chat } from '@google/genai';
+import { createChatService, ClaudeChatService } from '../services/claudeService';
 import { ChatMessage } from '../types';
 
 interface ChatBotProps {
@@ -11,12 +10,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ onClose }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const chatRef = useRef<Chat | null>(null);
+  const chatRef = useRef<ClaudeChatService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatRef.current = createChatSession();
-    setMessages([{ role: 'model', text: 'Hello! How can I help you today?' }]);
+    chatRef.current = createChatService();
+    setMessages([{ role: 'model', text: 'Hello! I\'m your AI assistant. How can I help you with crypto research today?' }]);
   }, []);
 
   useEffect(() => {
@@ -24,7 +23,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ onClose }) => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !chatRef.current) return;
 
     const userMessage: ChatMessage = { role: 'user', text: input };
     setMessages(prev => [...prev, userMessage]);
@@ -37,26 +36,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ onClose }) => {
     setMessages(prev => [...prev, modelMessage]);
 
     try {
-      const stream = await sendMessageStream(chatRef.current!, userMessage.text);
-      let firstChunk = true;
+      const stream = chatRef.current.sendMessageStream(userMessage.text);
       for await (const chunk of stream) {
-        fullResponse += chunk.text;
-        if (firstChunk) {
-            // Replace placeholder with the start of the actual response
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1].text = fullResponse;
-                return newMessages;
-            });
-            firstChunk = false;
-        } else {
-            // Update the last message with the appended text
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1].text = fullResponse;
-                return newMessages;
-            });
-        }
+        fullResponse += chunk;
+        // Update the last message with the appended text
+        setMessages(prev => {
+          const newMessages = [...prev];
+          newMessages[newMessages.length - 1].text = fullResponse;
+          return newMessages;
+        });
       }
     } catch (error) {
       console.error(error);
@@ -64,7 +52,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ onClose }) => {
         const newMessages = [...prev];
         const lastMsg = newMessages[newMessages.length - 1];
         if (lastMsg.role === 'model') {
-            lastMsg.text = "Sorry, something went wrong. Please try again.";
+            lastMsg.text = error instanceof Error ? error.message : "Sorry, something went wrong. Please try again.";
         }
         return newMessages;
       });
@@ -77,7 +65,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ onClose }) => {
     <div className="fixed bottom-8 right-8 w-full max-w-md h-[70vh] max-h-[600px] bg-gray-800 rounded-lg shadow-2xl flex flex-col z-50 border border-gray-700">
       {/* Header */}
       <div className="flex justify-between items-center p-3 bg-gray-700 rounded-t-lg">
-        <h3 className="font-bold text-white">Gemini Chat</h3>
+        <h3 className="font-bold text-white">AI Assistant</h3>
         <button onClick={onClose} className="text-gray-300 hover:text-white text-2xl leading-none font-bold">&times;</button>
       </div>
 
