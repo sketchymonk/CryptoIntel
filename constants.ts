@@ -14,6 +14,8 @@ export const sections: FormSection[] = [
         options: [
             { value: 'Lead Tokenomics Analyst', label: 'Lead Tokenomics Analyst' },
             { value: 'Senior Research & Investment Analyst', label: 'Senior Research & Investment Analyst' },
+            { value: 'Protocol Architect', label: 'Protocol Architect (Technical)' },
+            { value: 'DAO Governance Specialist', label: 'DAO Governance Specialist' },
             { value: 'On-Chain/Data Engineer', label: 'On-Chain/Data Engineer' },
             { value: 'Macro Strategist', label: 'Macro Strategist' },
             { value: 'Security Auditor', label: 'Security Auditor' },
@@ -229,12 +231,12 @@ export const sections: FormSection[] = [
         type: 'single_checkbox',
         description: 'Automatically adds a section listing all data sources, timestamps, and confidence scores.'
       },
-      { id: 'price_freshness', label: 'Max Price Age', type: 'text', placeholder: 'e.g., 60s, 5m, 1h', description: 'Data older than this is rejected. Supports s/m/h/d suffix.' },
-      { id: 'supply_freshness', label: 'Max Supply Age', type: 'text', placeholder: 'e.g., 24h', description: 'Acceptable age for supply metrics. Supports s/m/h/d suffix.' },
-      { id: 'volume_freshness', label: 'Max Volume Age', type: 'text', placeholder: 'e.g., 1h', description: 'Acceptable age for volume metrics. Supports s/m/h/d suffix.' },
-      { id: 'onchain_freshness', label: 'Max On-chain Data Age', type: 'text', placeholder: 'e.g., 2h', description: 'Acceptable age for blockchain data. Supports s/m/h/d suffix.' },
-      { id: 'social_freshness', label: 'Max Social Data Age', type: 'text', placeholder: 'e.g., 2h', description: 'Acceptable age for sentiment data. Supports s/m/h/d suffix.' },
-      { id: 'dev_freshness', label: 'Max Dev Activity Age', type: 'text', placeholder: 'e.g., 24h', description: 'Acceptable age for github/commit data. Supports s/m/h/d suffix.' },
+      { id: 'price_freshness', label: 'Max Price Age', type: 'text', placeholder: 'e.g., 60s, 5m', description: 'Max age for price data. Supports s/m/h/d suffixes.' },
+      { id: 'supply_freshness', label: 'Max Supply Age', type: 'text', placeholder: 'e.g., 24h, 1d', description: 'Max age for supply metrics. Supports s/m/h/d suffixes.' },
+      { id: 'volume_freshness', label: 'Max Volume Age', type: 'text', placeholder: 'e.g., 1h', description: 'Max age for volume metrics. Supports s/m/h/d suffixes.' },
+      { id: 'onchain_freshness', label: 'Max On-chain Data Age', type: 'text', placeholder: 'e.g., 2h', description: 'Max age for blockchain data. Supports s/m/h/d suffixes.' },
+      { id: 'social_freshness', label: 'Max Social Data Age', type: 'text', placeholder: 'e.g., 2h', description: 'Max age for sentiment data. Supports s/m/h/d suffixes.' },
+      { id: 'dev_freshness', label: 'Max Dev Activity Age', type: 'text', placeholder: 'e.g., 24h', description: 'Max age for github/commit data. Supports s/m/h/d suffixes.' },
       { id: 'min_sources', label: 'Min. Consensus Sources', type: 'text', placeholder: 'e.g., 3', description: 'Minimum number of independent sources required to validate a critical data point.' },
       {
         id: 'consensus_method',

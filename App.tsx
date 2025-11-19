@@ -12,9 +12,17 @@ import SavedAnalysesModal from './components/SavedAnalysesModal';
 import { templates } from './templates';
 
 // Helper to define and get the consistent initial state for the form
-const getInitialFormData = (): FormData => ({
-  quality_guardrails: { guardrail_preset: 'custom' }
-});
+const getInitialFormData = (): FormData => {
+    const initialData: FormData = {};
+    sections.forEach(section => {
+        initialData[section.id] = {};
+    });
+    // Set defaults
+    if (initialData['quality_guardrails']) {
+        initialData['quality_guardrails']['guardrail_preset'] = 'custom';
+    }
+    return initialData;
+};
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(getInitialFormData());
@@ -30,6 +38,9 @@ const App: React.FC = () => {
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState('');
 
+  // New state to provide stable context to ChatBot to prevent constant resets while typing
+  const [chatContext, setChatContext] = useState<{ prompt: string; response: string } | undefined>(undefined);
+
   // Computed property for the currently active template object
   const activeTemplate = templates.find(t => t.id === selectedTemplate);
 
@@ -41,7 +52,7 @@ const App: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       [section]: {
-        ...(prev[section] || {}), // Robustly handle sections not yet in state
+        ...(prev[section] || {}),
         [field]: value,
       }
     }));
@@ -88,38 +99,55 @@ const App: React.FC = () => {
               setGeminiResponse('');
               setGroundingChunks([]);
               setError('');
+              setChatContext(undefined);
           } else {
              // If user cancels, force the dropdown to snap back to the actual current state.
              // React state update handles the reversion in the UI.
              setSelectedTemplate(current => current);
           }
       } else {
-          // Handle "Select a template..." case to clear the form
-          const userConfirmed = formIsPristine || window.confirm('This will clear the form. Are you sure?');
-          if (userConfirmed) {
-              setFormData(getInitialFormData());
-              setSelectedTemplate('');
-          } else {
-             setSelectedTemplate(current => current);
+          // If selecting placeholder, do nothing or clear? 
+          // Current logic is handled by handleClearForm, so this branch might just reset the select.
+          if (templateId === "") {
+              // Intentionally left blank to allow de-selection if needed, currently managed by separate Clear button
           }
       }
   };
 
+  const handleClearForm = () => {
+      if (window.confirm("Are you sure you want to clear the entire form and all results?")) {
+          setFormData(getInitialFormData());
+          setSelectedTemplate('');
+          setGeneratedPrompt('');
+          setGeminiResponse('');
+          setGroundingChunks([]);
+          setError('');
+          setChatContext(undefined);
+      }
+  }
+
   const convertTimeInputToSeconds = (input: string): string => {
-      const str = input.toLowerCase().replace(/\s/g, '');
-      // Regex to match number and optional unit
-      const match = str.match(/^(\d+(?:\.\d+)?)(s|m|h|d)?$/);
+      // Normalize input: remove spaces, lowercase
+      const cleanInput = input.toLowerCase().replace(/\s/g, '');
+      
+      // Regex to match number and optional unit (supporting various forms)
+      const match = cleanInput.match(/^(\d+(?:\.\d+)?)(s|sec|secs|second|seconds|m|min|mins|minute|minutes|h|hr|hrs|hour|hours|d|day|days)?$/);
       
       if (match) {
           const val = parseFloat(match[1]);
-          const unit = match[2] || 's';
+          const unit = match[2];
           let seconds = val;
-          switch (unit) {
-              case 'm': seconds = val * 60; break;
-              case 'h': seconds = val * 3600; break;
-              case 'd': seconds = val * 86400; break;
-              case 's': default: seconds = val; break;
+          
+          if (!unit || unit.startsWith('s')) {
+              seconds = val;
+          } else if (unit.startsWith('m')) {
+              seconds = val * 60;
+          } else if (unit.startsWith('h')) {
+              seconds = val * 3600;
+          } else if (unit.startsWith('d')) {
+              seconds = val * 86400;
           }
+          
           return `${Math.round(seconds)} seconds`;
       }
       return input;
@@ -141,7 +169,10 @@ const App: React.FC = () => {
 
     sections.forEach(section => {
         const sectionData = formData[section.id];
-        if (!sectionData) return;
+        // If section data is empty, we might skip it, but getInitialFormData ensures the object exists.
+        // We check if it has any non-empty keys
+        const hasContent = sectionData && Object.values(sectionData).some(v => Array.isArray(v) ? v.length > 0 : !!v);
+        if (!sectionData || !hasContent) return;
 
         // Special handling for quality_guardrails section based on preset
         if (section.id === 'quality_guardrails') {
@@ -255,6 +286,11 @@ const App: React.FC = () => {
   const handleGeneratePrompt = () => {
     const promptText = generatePromptText();
     setGeneratedPrompt(promptText);
+    
+    // Update chat context with the new prompt. 
+    // We do NOT pass 'geminiResponse' here as it is likely stale relative to this new prompt.
+    setChatContext({ prompt: promptText, response: '' });
+    
     setGeminiResponse('');
     setGroundingChunks([]);
     setError('');
@@ -277,6 +313,10 @@ const App: React.FC = () => {
         : await runGroundedAnalysis(generatedPrompt);
 
       setGeminiResponse(response.text);
+      
+      // Update chat context to include the new response
+      setChatContext({ prompt: generatedPrompt, response: response.text });
+
       if (response.groundingChunks) {
         setGroundingChunks(response.groundingChunks);
       }
@@ -330,11 +370,13 @@ const App: React.FC = () => {
         setGeminiResponse(analysis.geminiResponse);
         setGroundingChunks(analysis.groundingChunks || []);
         setLastAnalysisType(analysis.analysisType || null);
+        setChatContext({ prompt: analysis.generatedPrompt, response: analysis.geminiResponse });
     } else {
         // It's just a prompt save
         setGeminiResponse('');
         setGroundingChunks([]);
         setLastAnalysisType(null);
+        setChatContext({ prompt: analysis.generatedPrompt, response: '' });
     }
     
     setError('');
@@ -453,19 +495,30 @@ const App: React.FC = () => {
                         <label htmlFor="template-selector" className="block mb-2 text-sm font-medium text-gray-300">
                             Load a Research Template
                         </label>
-                        <select
-                            id="template-selector"
-                            value={selectedTemplate}
-                            onChange={(e) => handleTemplateChange(e.target.value)}
-                            className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition"
-                        >
-                            <option value="">Select a template...</option>
-                            {templates.map(template => (
-                                <option key={template.id} value={template.id}>
-                                    {template.name}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="flex gap-2">
+                            <select
+                                id="template-selector"
+                                value={selectedTemplate}
+                                onChange={(e) => handleTemplateChange(e.target.value)}
+                                className="w-full p-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition"
+                            >
+                                <option value="">Select a template...</option>
+                                {templates.map(template => (
+                                    <option key={template.id} value={template.id}>
+                                        {template.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <button 
+                                onClick={handleClearForm}
+                                title="Clear Form"
+                                className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-md text-gray-200 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
                         {activeTemplate && (
                             <div className="mt-3 p-3 bg-gray-700/50 border border-gray-600 rounded-md text-sm animate-fadeIn">
                                 <p className="font-bold text-purple-300 mb-1 flex items-center gap-2">
@@ -537,7 +590,7 @@ const App: React.FC = () => {
                            ~{estimateTokens(generatedPrompt)} tokens
                        </span>
                        <button
-                        onClick={() => {navigator.clipboard.writeText(generatedPrompt);}}
+                        onClick={() => {navigator.clipboard.writeText(generatedPrompt); alert("Prompt copied to clipboard!");}}
                         className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded transition-colors"
                       >
                         Copy
@@ -552,6 +605,8 @@ const App: React.FC = () => {
                 />
                 <p className="text-xs text-gray-500 mt-2">
                   * You can edit this prompt manually before running the analysis.
+                  <br/>
+                  * <span className="text-yellow-500">Note:</span> If you edit the prompt here, remember to click "Generate Prompt" again if you want the Chat Assistant to be aware of your latest changes.
                 </p>
               </div>
             )}
@@ -578,7 +633,12 @@ const App: React.FC = () => {
         onDelete={handleDeleteAnalysis}
       />
 
-      {isChatOpen && <ChatBot onClose={() => setIsChatOpen(false)} />}
+      {isChatOpen && (
+        <ChatBot 
+            onClose={() => setIsChatOpen(false)} 
+            context={chatContext}
+        />
+      )}
       {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}

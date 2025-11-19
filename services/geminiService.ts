@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
 import { AnalysisResult } from './types';
 
@@ -61,13 +62,17 @@ export async function runGroundedAnalysis(prompt: string): Promise<AnalysisResul
 let chat: Chat | null = null;
 
 /**
- * Creates and returns a singleton chat session instance.
+ * Creates or returns a singleton chat session instance.
+ * @param systemInstruction Optional instruction to set the context of the chat.
+ * @param reset If true, forces the creation of a new chat session.
  */
-export function createChatSession(): Chat {
-    if (!chat) {
+export function getChatSession(systemInstruction?: string, reset: boolean = false): Chat {
+    // We reset if requested OR if we need to set systemInstructions but don't have a chat yet
+    if (!chat || reset) {
         const ai = new GoogleGenAI({ apiKey: getApiKey() });
         chat = ai.chats.create({
             model: 'gemini-2.5-flash',
+            config: systemInstruction ? { systemInstruction } : undefined
         });
     }
     return chat;

@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { GroundingChunk } from '../types';
 import JsonExplorer from './JsonExplorer';
+import SimpleMarkdown from './SimpleMarkdown';
 
 interface OutputDisplayProps {
   title: string;
@@ -135,9 +136,13 @@ const OutputDisplay: React.FC<OutputDisplayProps> = ({ title, text, isMarkdown =
             <JsonExplorer data={jsonData} />
         ) : (
             <div className="bg-gray-900 text-gray-300 p-4 rounded-md overflow-y-auto flex-1 custom-scrollbar">
-                <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                    <code>{text}</code>
-                </pre>
+                {isMarkdown ? (
+                    <SimpleMarkdown text={text} />
+                ) : (
+                    <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                        <code>{text}</code>
+                    </pre>
+                )}
                 {groundingChunks && groundingChunks.length > 0 && (
                 <div className="mt-6 border-t border-gray-700 pt-4">
                     <h4 className="font-semibold text-gray-400 mb-2 font-sans">Sources from Google Search:</h4>

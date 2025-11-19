@@ -5,7 +5,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'investment-thesis',
     name: 'Investment Thesis Generation',
-    description: 'A template for conducting deep-dive fundamental analysis to form a clear bull vs. bear investment thesis.',
+    description: 'Institutional-grade investment memo designed for Portfolio Managers. Combines macro-economic context with deep fundamental analysis to articulate a clear Bull vs. Bear thesis. Best used for preparing Investment Committee proposals or high-conviction long-term allocation decisions.',
     data: {
       context: {
         experts: ['Lead Tokenomics Analyst', 'Macro Strategist'],
@@ -42,7 +42,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'tokenomics-audit',
     name: 'Tokenomics Audit',
-    description: 'A focused template for rigorously auditing a project\'s tokenomics, including supply, distribution, and utility.',
+    description: 'Forensic analysis of supply dynamics and incentive structures. Identifies inflationary risks, predatory insider unlocks, and value capture mechanisms. Essential for determining if a token is structurally designed to accrue value to holders or merely enrich early investors/teams.',
     data: {
       context: {
         experts: ['Lead Tokenomics Analyst', 'On-Chain/Data Engineer'],
@@ -82,7 +82,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'new-listing-dd',
     name: 'New Listing Due Diligence',
-    description: 'Rapid assessment framework for evaluating new token launches, IDOs, or recent listings (0-6 months).',
+    description: 'Rapid due diligence framework for TGEs and recent listings (0-6 months). Prioritizes initial float analysis, FDV ratios, and team background checks to filter vaporware from genuine gems before price discovery settles. Use this to avoid "rug pulls" and "VC dumps".',
     data: {
       context: {
         experts: ['Macro Strategist', 'Regulatory Counsel', 'Lead Tokenomics Analyst'],
@@ -122,7 +122,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'protocol-security',
     name: 'Protocol Security & Risk Audit',
-    description: 'A deep dive into the technical and systemic risks of a protocol. Ideal for large deployments or DAO treasury diversification.',
+    description: 'Deep-dive technical risk assessment for DAO treasuries and large capital allocators. Scrutinizes smart contract dependencies, admin key centralization, and potential exploit vectors. Use this before depositing significant capital (>$100k) into any protocol.',
     data: {
       context: {
         experts: ['Security Auditor', 'On-Chain/Data Engineer'],
@@ -162,7 +162,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'narrative-swing',
     name: 'Narrative & Catalyst Swing Trade',
-    description: 'Focuses on short-to-medium term price action driven by upcoming events, upgrades, or narrative rotation.',
+    description: 'Tactical framework for short-term (1-3 months) active trading. Identifies upcoming catalysts (mainnets, halvings, conferences) and sentiment shifts to capitalize on "Buy the Rumor" opportunities. Focuses on narrative velocity and timing rather than long-term fundamentals.',
     data: {
       context: {
         experts: ['Macro Strategist', 'Lead Tokenomics Analyst'],
@@ -200,7 +200,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'defi-deep-dive',
     name: 'DeFi Protocol Deep Dive',
-    description: 'A granular examination of liquidity dynamics, yield sustainability, and mechanism design for decentralized finance protocols.',
+    description: 'Granular breakdown of DeFi yield mechanics and revenue models. Separates "Real Yield" from inflationary emissions and analyzes flywheel sustainability. Critical for yield farmers and liquidity providers assessing the longevity of APRs and protocol solvency.',
     data: {
       context: {
         experts: ['Lead Tokenomics Analyst', 'On-Chain/Data Engineer', 'Security Auditor'],
@@ -241,7 +241,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'emerging-tech-trend',
     name: 'Emerging Tech Trend Analysis',
-    description: 'Framework for evaluating projects at the intersection of crypto and emerging tech (RWA, AI, DePIN), focusing on TAM and product-market fit.',
+    description: 'Venture-style analysis for cutting-edge sectors (AI, RWA, DePIN). Evaluates Total Addressable Market (TAM), technical feasibility, and product-market fit. Designed to distinguish genuine innovation from buzzword-driven marketing in early-stage hype cycles.',
     data: {
       context: {
         experts: ['Macro Strategist', 'Lead Tokenomics Analyst'],
@@ -281,7 +281,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'hodl-strategy',
     name: 'Long-Term HODL Strategy',
-    description: 'Comprehensive deep-dive for long-term investors. Focuses on fundamentals, tokenomics, and consensus-based price predictions.',
+    description: 'Multi-cycle conviction framework for the 3-5 year horizon. Synthesizes macro correlation, on-chain retention metrics, and competitive moats to validate "Blue Chip" status. Perfect for constructing a passive, high-conviction portfolio aiming for cycle-agnostic growth.',
     data: {
       context: {
         experts: ['Macro Strategist', 'Lead Tokenomics Analyst', 'On-Chain/Data Engineer'],
@@ -327,7 +327,7 @@ export const templates: ResearchTemplate[] = [
   {
     id: 'live-news-scanner',
     name: 'Live News & Catalysts Scanner',
-    description: 'Real-time analysis of recent news, social sentiment, and upcoming events. Ideal for staying updated on the latest market movers.',
+    description: 'Real-time sentiment and news impact analysis. Scans the last 72 hours of regulatory updates, hacks, and viral social threads to explain sudden volatility or identify immediate risks. Best used for daily market maintenance and reacting to breaking events.',
     data: {
       context: {
         experts: ['Macro Strategist', 'Lead Tokenomics Analyst'],
