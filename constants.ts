@@ -13,6 +13,7 @@ export const sections: FormSection[] = [
         description: 'Defines the persona and technical depth the AI should emulate for the analysis.',
         options: [
             { value: 'Lead Tokenomics Analyst', label: 'Lead Tokenomics Analyst' },
+            { value: 'Senior Research & Investment Analyst', label: 'Senior Research & Investment Analyst' },
             { value: 'On-Chain/Data Engineer', label: 'On-Chain/Data Engineer' },
             { value: 'Macro Strategist', label: 'Macro Strategist' },
             { value: 'Security Auditor', label: 'Security Auditor' },
@@ -122,6 +123,7 @@ export const sections: FormSection[] = [
           options: [
             { value: 'executive_summary', label: 'Executive Summary' },
             { value: 'tldr_for_novices', label: 'TLDR for Novices' },
+            { value: 'news_analysis', label: 'News & Catalysts Analysis (Live)' },
             { value: 'tokenomics_deep_dive', label: 'Tokenomics Deep Dive' },
             { value: 'onchain_metrics', label: 'On-chain Metrics & Analysis' },
             { value: 'team_background', label: 'Team & Founder Background' },
@@ -185,6 +187,7 @@ export const sections: FormSection[] = [
           { value: 'regulatory_risk', label: 'Regulatory Risk' },
           { value: 'centralization_risk', label: 'Centralization Risk' },
           { value: 'competitor_risk', label: 'Competitor Risk' },
+          { value: 'operational_risk', label: 'Operational Risk (e.g., team execution, hacks)' },
         ]
       },
       { id: 'stress_scenarios', label: 'Stress Test Scenarios', type: 'textarea', placeholder: 'e.g., 51% attack, major exchange delisting, key developer departure', description: 'Simulates extreme conditions to test the project\'s resilience.' },
@@ -220,12 +223,18 @@ export const sections: FormSection[] = [
           { value: 'loose', label: 'Web Scraping (Looser Guardrails)' },
         ]
       },
-      { id: 'price_freshness', label: 'Max Price Age (seconds)', type: 'text', placeholder: 'e.g., 60', description: 'Data older than this is rejected.' },
-      { id: 'supply_freshness', label: 'Max Supply Age (seconds)', type: 'text', placeholder: 'e.g., 86400', description: 'Acceptable age for supply metrics.' },
-      { id: 'volume_freshness', label: 'Max Volume Age (seconds)', type: 'text', placeholder: 'e.g., 3600', description: 'Acceptable age for volume metrics.' },
-      { id: 'onchain_freshness', label: 'Max On-chain Data Age (seconds)', type: 'text', placeholder: 'e.g., 7200', description: 'Acceptable age for blockchain data.' },
-      { id: 'social_freshness', label: 'Max Social Data Age (seconds)', type: 'text', placeholder: 'e.g., 7200', description: 'Acceptable age for sentiment data.' },
-      { id: 'dev_freshness', label: 'Max Dev Activity Age (seconds)', type: 'text', placeholder: 'e.g., 86400', description: 'Acceptable age for github/commit data.' },
+      {
+        id: 'include_provenance_table',
+        label: 'Include Data Provenance Table',
+        type: 'single_checkbox',
+        description: 'Automatically adds a section listing all data sources, timestamps, and confidence scores.'
+      },
+      { id: 'price_freshness', label: 'Max Price Age', type: 'text', placeholder: 'e.g., 60s, 5m, 1h', description: 'Data older than this is rejected. Supports s/m/h/d suffix.' },
+      { id: 'supply_freshness', label: 'Max Supply Age', type: 'text', placeholder: 'e.g., 24h', description: 'Acceptable age for supply metrics. Supports s/m/h/d suffix.' },
+      { id: 'volume_freshness', label: 'Max Volume Age', type: 'text', placeholder: 'e.g., 1h', description: 'Acceptable age for volume metrics. Supports s/m/h/d suffix.' },
+      { id: 'onchain_freshness', label: 'Max On-chain Data Age', type: 'text', placeholder: 'e.g., 2h', description: 'Acceptable age for blockchain data. Supports s/m/h/d suffix.' },
+      { id: 'social_freshness', label: 'Max Social Data Age', type: 'text', placeholder: 'e.g., 2h', description: 'Acceptable age for sentiment data. Supports s/m/h/d suffix.' },
+      { id: 'dev_freshness', label: 'Max Dev Activity Age', type: 'text', placeholder: 'e.g., 24h', description: 'Acceptable age for github/commit data. Supports s/m/h/d suffix.' },
       { id: 'min_sources', label: 'Min. Consensus Sources', type: 'text', placeholder: 'e.g., 3', description: 'Minimum number of independent sources required to validate a critical data point.' },
       {
         id: 'consensus_method',
@@ -262,4 +271,3 @@ export const sections: FormSection[] = [
     ]
   }
 ];
-    

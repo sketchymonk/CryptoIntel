@@ -31,6 +31,7 @@ export const templates: ResearchTemplate[] = [
         format: 'markdown',
         tone: 'neutral',
         length: '2000-2500 words',
+        visuals: ['tables'],
       },
       risk_assessment: {
         key_risks: ['market_risk', 'tech_risk', 'regulatory_risk', 'competitor_risk'],
@@ -65,6 +66,7 @@ export const templates: ResearchTemplate[] = [
         ],
         format: 'json',
         tone: 'formal',
+        visuals: ['tables', 'diagrams'],
       },
       asset_sourcing: {
         price_sources: 'CoinGecko, Binance, Uniswap',
@@ -73,6 +75,7 @@ export const templates: ResearchTemplate[] = [
       },
       quality_guardrails: {
         guardrail_preset: 'strict',
+        include_provenance_table: true,
       },
     },
   },
@@ -144,6 +147,7 @@ export const templates: ResearchTemplate[] = [
         format: 'pdf_structure',
         tone: 'formal',
         length: '~3000 words',
+        visuals: ['tables'],
       },
       risk_assessment: {
         key_risks: ['tech_risk', 'centralization_risk', 'market_risk'],
@@ -151,6 +155,7 @@ export const templates: ResearchTemplate[] = [
       },
       quality_guardrails: {
         guardrail_preset: 'strict',
+        include_provenance_table: true,
       },
     },
   },
@@ -181,7 +186,7 @@ export const templates: ResearchTemplate[] = [
         ],
         format: 'markdown',
         tone: 'opinionated',
-        visuals: ['charts'],
+        visuals: ['charts', 'tables'],
       },
       risk_assessment: {
         key_risks: ['market_risk', 'competitor_risk'],
@@ -221,7 +226,7 @@ export const templates: ResearchTemplate[] = [
         ],
         format: 'markdown',
         tone: 'neutral',
-        visuals: ['charts', 'diagrams'],
+        visuals: ['charts', 'diagrams', 'tables'],
       },
       risk_assessment: {
         key_risks: ['tech_risk', 'market_risk', 'centralization_risk'],
@@ -270,6 +275,96 @@ export const templates: ResearchTemplate[] = [
       },
       asset_sourcing: {
         social_sources: 'Messari, The Block, X/Twitter',
+      }
+    },
+  },
+  {
+    id: 'hodl-strategy',
+    name: 'Long-Term HODL Strategy',
+    description: 'Comprehensive deep-dive for long-term investors. Focuses on fundamentals, tokenomics, and consensus-based price predictions.',
+    data: {
+      context: {
+        experts: ['Macro Strategist', 'Lead Tokenomics Analyst', 'On-Chain/Data Engineer'],
+        purpose: 'Inform trading/investment decision',
+        actionability: 'Strategic',
+      },
+      coreQuestion: {
+        primaryQuestion: 'Is this asset a viable long-term hold (3-5 years)? What are the risk-adjusted return expectations?',
+        hypothesis: 'The project has strong fundamentals but is currently undervalued due to market sentiment.',
+      },
+      specifications: {
+        methodology: ['Fundamental Analysis', 'Predictive Modeling', 'Sentiment Analysis', 'On-chain Quant Analysis'],
+        timePeriod: 'Current cycle + 5 year horizon',
+        marketTrends: 'Synthesize long-term market cycles. INCLUDE A TABLE of consensus-based price predictions for 2025-2030 from reputable sources (e.g., VanEck, Standard Chartered, Ark Invest).',
+      },
+      output: {
+        structure: [
+          'executive_summary',
+          'tokenomics_deep_dive',
+          'investment_thesis',
+          'risk_assessment',
+          'price_prediction',
+        ],
+        format: 'markdown',
+        tone: 'opinionated',
+        length: 'Comprehensive (~2000 words)',
+        visuals: ['charts', 'tables'],
+      },
+      risk_assessment: {
+        key_risks: ['market_risk', 'regulatory_risk', 'tech_risk'],
+        stress_scenarios: 'Regulatory classification as a security. Prolonged bear market.',
+      },
+      asset_sourcing: {
+        social_sources: 'Coindesk, The Block, Official Governance Forums, X/Twitter',
+        price_sources: 'CoinGecko, Binance',
+      },
+      quality_guardrails: {
+        guardrail_preset: 'strict',
+        include_provenance_table: true,
+      }
+    },
+  },
+  {
+    id: 'live-news-scanner',
+    name: 'Live News & Catalysts Scanner',
+    description: 'Real-time analysis of recent news, social sentiment, and upcoming events. Ideal for staying updated on the latest market movers.',
+    data: {
+      context: {
+        experts: ['Macro Strategist', 'Lead Tokenomics Analyst'],
+        purpose: 'Inform trading/investment decision',
+        actionability: 'Practical trading plan',
+      },
+      coreQuestion: {
+        primaryQuestion: 'What are the most significant news stories, regulatory updates, and social catalysts from the last 24-72 hours?',
+        hypothesis: 'Recent news events are driving immediate price action that is not yet fully priced in.',
+      },
+      specifications: {
+        methodology: ['Event-Driven Analysis', 'Sentiment Analysis', 'Fundamental Analysis'],
+        timePeriod: 'Last 7 days + Next 30 days',
+        marketTrends: 'Focus on headlines from major crypto outlets (CoinDesk, Cointelegraph) and viral X/Twitter threads.',
+      },
+      output: {
+        structure: [
+          'executive_summary',
+          'news_analysis',
+          'risk_assessment',
+          'investment_thesis',
+        ],
+        format: 'markdown',
+        tone: 'neutral',
+        length: 'Concise (~1000 words)',
+        visuals: ['tables'],
+      },
+      risk_assessment: {
+        key_risks: ['market_risk', 'regulatory_risk'],
+        stress_scenarios: 'FUD campaigns on social media. Misinterpreted regulatory news.',
+      },
+      asset_sourcing: {
+        social_sources: 'X/Twitter, CryptoCalendar, CoinDesk, The Block',
+      },
+      quality_guardrails: {
+        guardrail_preset: 'loose',
+        include_provenance_table: true,
       }
     },
   }

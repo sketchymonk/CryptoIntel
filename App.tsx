@@ -105,9 +105,38 @@ const App: React.FC = () => {
       }
   };
 
+  const convertTimeInputToSeconds = (input: string): string => {
+      const str = input.toLowerCase().replace(/\s/g, '');
+      // Regex to match number and optional unit
+      const match = str.match(/^(\d+(?:\.\d+)?)(s|m|h|d)?$/);
+      
+      if (match) {
+          const val = parseFloat(match[1]);
+          const unit = match[2] || 's';
+          let seconds = val;
+          switch (unit) {
+              case 'm': seconds = val * 60; break;
+              case 'h': seconds = val * 3600; break;
+              case 'd': seconds = val * 86400; break;
+              case 's': default: seconds = val; break;
+          }
+          return `${Math.round(seconds)} seconds`;
+      }
+      return input;
+  };
+
   const generatePromptText = () => {
-    const projectName = formData.context?.project;
-    const title = projectName ? `## Crypto Research Brief: ${projectName}` : '## Comprehensive Crypto Research Brief';
+    const projectName = formData.context?.project as string;
+    
+    // Logic: If a template is active, prioritize it in the title
+    let title = '## Comprehensive Crypto Research Brief';
+    if (activeTemplate) {
+        title = `## Research Brief: ${activeTemplate.name}`;
+        if (projectName) title += ` - ${projectName}`;
+    } else if (projectName) {
+        title = `## Crypto Research Brief: ${projectName}`;
+    }
+    
     let prompt = `${title}\n\n`;
 
     sections.forEach(section => {
@@ -117,6 +146,8 @@ const App: React.FC = () => {
         // Special handling for quality_guardrails section based on preset
         if (section.id === 'quality_guardrails') {
             const preset = sectionData.guardrail_preset;
+            
+            // Base Logic based on preset
             if (preset === 'strict') {
                 prompt += `### ${section.title}\n\n`;
                 prompt += `**Strict Guardrail Defaults:** ENABLED. The following is a non-negotiable pre-flight check to ensure data integrity. Halt execution if any check fails.\n\n`;
@@ -133,9 +164,6 @@ const App: React.FC = () => {
                 prompt += `#### Accuracy Guard\n`;
                 prompt += `*   **Checks:** Spot price must be within the 24h high/low range, bid-ask spread must be reasonable (e.g., <= 0.5%), last trade recency must be <= 60s.\n`;
                 prompt += `*   **Failure Action:** If ANY check fails, re-query all sources. If still failing, ABORT with a full audit log.\n\n`;
-                prompt += `#### Audit Requirement\n`;
-                prompt += `*   Embed a data provenance table in the final report showing: metric, final value, sources used, source values, timestamps (UTC), and checks passed.\n\n`;
-                return; // Skip the rest of the logic for this section
             } else if (preset === 'loose') {
                 prompt += `### ${section.title}\n\n`;
                 prompt += `**Web Scraping Guardrails (Looser):** ENABLED. The following is a set of relaxed guidelines for data integrity, suitable for public web sources. Best-effort checks will be performed.\n\n`;
@@ -148,20 +176,60 @@ const App: React.FC = () => {
                 prompt += `*   **Aggregation Method:** Use the median value.\n`;
                 prompt += `*   **Max Price Deviation:** 5% between sources.\n`;
                 prompt += `*   **Refetch Policy:** If deviation is exceeded, note the discrepancy in the audit log.\n\n`;
-                prompt += `#### Audit Requirement\n`;
-                prompt += `*   Embed a data provenance table in the final report showing: metric, final value, sources used, timestamps (UTC), and note any data quality issues.\n\n`;
-                return; // Skip the rest of the logic for this section
+            } else {
+                // Custom logic
+                const fieldEntries = section.fields
+                    .map(field => {
+                        // Don't reprint selector or the standalone boolean in the general list
+                        if (field.id === 'guardrail_preset' || field.id === 'include_provenance_table') {
+                            return null;
+                        }
+
+                        let value = sectionData[field.id];
+                        if (value && (!Array.isArray(value) || value.length > 0)) {
+                            let displayValue = value;
+                            
+                            // Convert freshness fields to seconds for the LLM
+                            if (field.id.endsWith('_freshness') && typeof value === 'string') {
+                                displayValue = convertTimeInputToSeconds(value);
+                            }
+
+                            if (field.type === 'checkbox') {
+                                return `*   **${field.label}:** ${(value as string[]).join(', ')}`;
+                            } else if (field.type === 'single_checkbox') {
+                                return `*   **${field.label}:** ${value ? 'Enabled' : 'Disabled'}`;
+                            } else {
+                                return `*   **${field.label}:** ${displayValue}`;
+                            }
+                        }
+                        return null;
+                    })
+                    .filter(Boolean);
+
+                if (fieldEntries.length > 0) {
+                    prompt += `### ${section.title}\n\n`;
+                    prompt += fieldEntries.join('\n') + '\n\n';
+                }
             }
+
+            // Common logic for Provenance Table (Added to all modes if checked)
+            if (sectionData.include_provenance_table) {
+                // Ensure header exists if we skipped it in Custom mode due to no other fields
+                if (preset === 'custom' && prompt.lastIndexOf(`### ${section.title}`) === -1) {
+                     prompt += `### ${section.title}\n\n`;
+                }
+                prompt += `#### Data Provenance & Audit\n`;
+                prompt += `*   **Requirement:** Embed a detailed data provenance table in the final report.\n`;
+                prompt += `*   **Columns:** Metric, Final Value, Source(s) Used, Timestamp (UTC), Confidence Score/Notes.\n`;
+                prompt += `*   **Validation:** Explicitly flag any data points where sources deviated significantly or data was stale.\n\n`;
+            }
+            
+            return; // End of quality_guardrails processing
         }
 
-        // Default logic for all other sections (and 'custom' guardrails)
+        // Default logic for all other sections
         const fieldEntries = section.fields
             .map(field => {
-                // We don't need to print the preset selector value itself
-                if (field.id === 'guardrail_preset') {
-                    return null;
-                }
-
                 const value = sectionData[field.id];
                 if (value && (!Array.isArray(value) || value.length > 0)) {
                     if (field.type === 'checkbox') {
@@ -318,6 +386,9 @@ const App: React.FC = () => {
     </>
   );
 
+  // Helper to estimate tokens (roughly 4 chars per token)
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
@@ -333,27 +404,44 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column: Form */}
           <div className="flex flex-col space-y-4">
-             {sections.map(section => (
-              <Accordion key={section.id} title={section.title}>
-                <div className="space-y-4">
-                  {section.fields.map(field => {
-                     // Special rendering logic for quality_guardrails
-                     if (section.id === 'quality_guardrails') {
-                      const preset = formData.quality_guardrails?.guardrail_preset || 'custom';
-                      // Hide granular fields if a preset is selected, but always show the preset selector
-                      if (preset !== 'custom' && field.id !== 'guardrail_preset') {
-                        return null;
-                      }
-                    }
-                    return (
-                      <div key={field.id}>
-                        {renderField(section.id, field)}
+             {sections.map(section => {
+                // Relevance Logic:
+                // If a template is active, a section is "relevant" if it is defined in the template data,
+                // or if it's the fundamental 'context' section.
+                // If no template is active, we treat only 'context' as primary open, or all as relevant.
+                const isRelevant = !activeTemplate 
+                    ? section.id === 'context' 
+                    : (section.id === 'context' || (activeTemplate.data && Object.prototype.hasOwnProperty.call(activeTemplate.data, section.id)));
+                
+                // Styling to de-emphasize sections that aren't part of the active template
+                const containerClass = isRelevant 
+                    ? "transition-opacity duration-300 opacity-100" 
+                    : "transition-opacity duration-300 opacity-60 hover:opacity-100";
+
+                return (
+                  <div key={`${section.id}-${selectedTemplate}`} className={containerClass}>
+                    <Accordion title={section.title} defaultOpen={isRelevant}>
+                      <div className="space-y-4">
+                        {section.fields.map(field => {
+                          // Special rendering logic for quality_guardrails
+                          if (section.id === 'quality_guardrails') {
+                            const preset = formData.quality_guardrails?.guardrail_preset || 'custom';
+                            // Hide granular fields if a preset is selected, but always show the preset selector AND the provenance checkbox
+                            if (preset !== 'custom' && field.id !== 'guardrail_preset' && field.id !== 'include_provenance_table') {
+                              return null;
+                            }
+                          }
+                          return (
+                            <div key={field.id}>
+                              {renderField(section.id, field)}
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
-              </Accordion>
-            ))}
+                    </Accordion>
+                  </div>
+                );
+            })}
           </div>
 
           {/* Right Column: Output */}
@@ -441,7 +529,31 @@ const App: React.FC = () => {
             </div>
 
             {generatedPrompt && !geminiResponse && !error && (
-              <OutputDisplay title="Generated Prompt" text={generatedPrompt} />
+               <div className="bg-gray-800 p-4 rounded-lg shadow-lg animate-fadeIn">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-purple-400">Generated Prompt (Editable)</h3>
+                   <div className="flex items-center gap-4">
+                       <span className="text-xs text-gray-400 font-mono" title="Estimated token count">
+                           ~{estimateTokens(generatedPrompt)} tokens
+                       </span>
+                       <button
+                        onClick={() => {navigator.clipboard.writeText(generatedPrompt);}}
+                        className="text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded transition-colors"
+                      >
+                        Copy
+                      </button>
+                   </div>
+                </div>
+                <textarea
+                  value={generatedPrompt}
+                  onChange={(e) => setGeneratedPrompt(e.target.value)}
+                  className="w-full h-96 bg-gray-900 text-gray-300 font-mono text-sm p-4 rounded-md border border-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-none resize-y"
+                  spellCheck={false}
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  * You can edit this prompt manually before running the analysis.
+                </p>
+              </div>
             )}
             
             {error && (

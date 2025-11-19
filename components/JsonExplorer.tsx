@@ -11,6 +11,7 @@ interface JsonNodeProps {
   depth?: number;
   filterText: string;
   isLast: boolean;
+  defaultOpen: boolean;
 }
 
 const getTypeColor = (value: any) => {
@@ -44,11 +45,16 @@ const checkMatch = (key: string, value: any, term: string): boolean => {
   return false;
 };
 
-const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth = 0, filterText, isLast }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth = 0, filterText, isLast, defaultOpen }) => {
+  const [isExpanded, setIsExpanded] = useState(defaultOpen);
   const isObject = value !== null && typeof value === 'object';
   const isArray = Array.isArray(value);
   const isEmpty = isObject && Object.keys(value).length === 0;
+  
+  // Update internal state if defaultOpen prop changes (force expand/collapse)
+  useEffect(() => {
+      setIsExpanded(defaultOpen);
+  }, [defaultOpen]);
   
   // Determine if this node should be visible
   const isVisible = useMemo(() => checkMatch(name, value, filterText), [name, value, filterText]);
@@ -105,6 +111,7 @@ const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth = 0, filterText,
               depth={depth + 1} 
               filterText={filterText}
               isLast={index === keys.length - 1}
+              defaultOpen={defaultOpen}
             />
           ))}
         </div>
@@ -123,6 +130,7 @@ const JsonNode: React.FC<JsonNodeProps> = ({ name, value, depth = 0, filterText,
 const JsonExplorer: React.FC<JsonExplorerProps> = ({ data }) => {
   const [filterText, setFilterText] = useState('');
   const [copyFeedback, setCopyFeedback] = useState('');
+  const [defaultOpen, setDefaultOpen] = useState(true);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
@@ -133,8 +141,8 @@ const JsonExplorer: React.FC<JsonExplorerProps> = ({ data }) => {
   return (
     <div className="flex flex-col h-full bg-gray-900/50 border border-gray-700 rounded-lg overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row gap-2 p-3 border-b border-gray-700 bg-gray-800/50">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row gap-2 p-3 border-b border-gray-700 bg-gray-800/50 items-center">
+        <div className="relative flex-1 w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -148,12 +156,26 @@ const JsonExplorer: React.FC<JsonExplorerProps> = ({ data }) => {
                 className="w-full pl-10 pr-3 py-1.5 bg-gray-900 border border-gray-600 rounded text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 transition-colors"
             />
         </div>
-        <button 
-            onClick={handleCopy}
-            className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm rounded border border-gray-600 transition-colors whitespace-nowrap"
-        >
-            {copyFeedback || 'Copy JSON'}
-        </button>
+        <div className="flex gap-2">
+            <button 
+                onClick={() => setDefaultOpen(true)}
+                className="px-2 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded border border-gray-600 transition-colors"
+            >
+                Expand All
+            </button>
+             <button 
+                onClick={() => setDefaultOpen(false)}
+                className="px-2 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded border border-gray-600 transition-colors"
+            >
+                Collapse All
+            </button>
+            <button 
+                onClick={handleCopy}
+                className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm rounded border border-gray-600 transition-colors whitespace-nowrap min-w-[80px]"
+            >
+                {copyFeedback || 'Copy JSON'}
+            </button>
+        </div>
       </div>
       
       {/* Tree View */}
@@ -164,6 +186,7 @@ const JsonExplorer: React.FC<JsonExplorerProps> = ({ data }) => {
           depth={0} 
           filterText={filterText} 
           isLast={true} 
+          defaultOpen={defaultOpen}
         />
       </div>
     </div>
