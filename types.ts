@@ -1,3 +1,4 @@
+
 export interface FormField {
     id: string;
     label: string;
@@ -42,9 +43,9 @@ export interface SavedAnalysis {
   createdAt: string;
   formData: FormData;
   generatedPrompt: string;
-  geminiResponse: string;
+  geminiResponse?: string; // Optional now
   groundingChunks?: GroundingChunk[];
-  analysisType: 'deep' | 'grounded';
+  analysisType?: 'deep' | 'grounded'; // Optional now
 }
 
 export interface ResearchTemplate {

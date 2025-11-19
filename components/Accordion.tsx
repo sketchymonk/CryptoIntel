@@ -1,32 +1,21 @@
 
 import React, { useState } from 'react';
-import Tooltip from './Tooltip';
-import { helpContent } from './helpContent';
 
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
-  sectionId: string;
 }
 
-const Accordion: React.FC<AccordionProps> = ({ title, children, sectionId }) => {
+const Accordion: React.FC<AccordionProps> = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(false);
-  // helpContent keys can return an object (for field help) or string (for section help).
-  // We only want the string value for the section tooltip.
-  const rawHelpText = helpContent[`${sectionId}_section`];
-  const helpText = typeof rawHelpText === 'string' ? rawHelpText : undefined;
 
   return (
     <div className="border border-gray-700 bg-gray-800 rounded-lg shadow-md overflow-hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex justify-between items-center p-4 text-left font-semibold text-lg text-purple-300 hover:bg-gray-700 focus:outline-none"
-        aria-expanded={isOpen}
       >
-        <span className="flex items-center gap-1">
-          {title}
-          {helpText && <Tooltip content={helpText} />}
-        </span>
+        <span>{title}</span>
         <svg
           className={`w-6 h-6 transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"

@@ -1,54 +1,43 @@
-
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
-import { AnalysisResult } from '../types';
+import { AnalysisResult } from './types';
 
-// Initialize the client with the API key from the environment.
-const getAI = (): GoogleGenAI => {
+function getApiKey() {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API_KEY environment variable is missing. Please provide a valid API key.");
+    throw new Error("API_KEY environment variable not set.");
   }
-  return new GoogleGenAI({ apiKey });
-};
+  return apiKey;
+}
 
 /**
- * Runs a deep analysis using gemini-3-pro-preview with reasoning capabilities.
- * This leverages the 'thinkingConfig' to allow the model to deliberate on complex crypto topics.
- * We set a high thinking budget to ensure depth, and a larger maxOutputTokens to accommodate the response.
+ * Runs a deep analysis using gemini-2.5-pro with maximum thinking budget.
+ * @param prompt The detailed prompt for the analysis.
+ * @returns A promise that resolves to an AnalysisResult.
  */
 export async function runDeepAnalysis(prompt: string): Promise<AnalysisResult> {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-2.5-pro',
       contents: prompt,
       config: {
-        // The effective token limit for the response is `maxOutputTokens` minus the `thinkingBudget`.
-        // We allocate 16k tokens for thinking and leave ~49k for the final output.
-        thinkingConfig: { thinkingBudget: 16000 },
-        maxOutputTokens: 65536,
+        thinkingConfig: { thinkingBudget: 32768 },
       },
     });
-
-    const text = response.text;
-    if (!text) {
-       throw new Error("The model did not return any text. The response might have been filtered.");
-    }
-
-    return { text };
+    return { text: response.text };
   } catch (error) {
-    console.error("Deep Analysis failed:", error);
-    throw new Error(error instanceof Error ? error.message : "Deep analysis failed due to an unknown error.");
+    console.error("Deep Analysis Gemini API call failed:", error);
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred.");
   }
 }
 
 /**
  * Runs a grounded analysis using gemini-2.5-flash with Google Search.
- * This allows the model to fetch real-time data for price, news, and sentiment.
- * Note: responseMimeType and responseSchema must NOT be set when using googleSearch.
+ * @param prompt The prompt for the analysis.
+ * @returns A promise that resolves to an AnalysisResult, including grounding sources.
  */
 export async function runGroundedAnalysis(prompt: string): Promise<AnalysisResult> {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -58,45 +47,41 @@ export async function runGroundedAnalysis(prompt: string): Promise<AnalysisResul
       },
     });
 
-    // Extract grounding metadata (search sources)
-    const candidate = response.candidates?.[0];
-    const groundingChunks = candidate?.groundingMetadata?.groundingChunks || [];
-    const text = response.text || "No text response generated.";
-
-    // Cast groundingChunks to any[] to satisfy the interface if strict types vary slightly from SDK
-    return { 
-        text, 
-        groundingChunks: groundingChunks as any[] 
-    };
+    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    return { text: response.text, groundingChunks: groundingChunks as any[] };
   } catch (error) {
-    console.error("Grounded Analysis failed:", error);
-    throw new Error(error instanceof Error ? error.message : "Grounded analysis failed due to an unknown error.");
+    console.error("Grounded Analysis Gemini API call failed:", error);
+    throw new Error(error instanceof Error ? error.message : "An unknown error occurred.");
   }
 }
 
+
 // --- Chat Service ---
 
+let chat: Chat | null = null;
+
 /**
- * Creates a new chat session.
- * We do not persist the instance globally to ensure the UI state (which resets on open) 
- * matches the chat context.
+ * Creates and returns a singleton chat session instance.
  */
 export function createChatSession(): Chat {
-    const ai = getAI();
-    return ai.chats.create({
-        model: 'gemini-2.5-flash',
-        config: {
-            systemInstruction: "You are an expert crypto research assistant. Help the user refine their research prompts, explain complex DeFi concepts, or analyze specific tokens."
-        }
-    });
+    if (!chat) {
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        chat = ai.chats.create({
+            model: 'gemini-2.5-flash',
+        });
+    }
+    return chat;
 }
 
 /**
- * Sends a message to the chat session and returns a stream.
+ * Sends a message to the chat session and returns a streaming response.
+ * @param chatInstance The chat instance to use.
+ * @param message The user's message.
+ * @returns An async generator that yields response chunks.
  */
 export async function sendMessageStream(
-    chat: Chat,
+    chatInstance: Chat,
     message: string
 ): Promise<AsyncIterable<GenerateContentResponse>> {
-    return chat.sendMessageStream({ message });
+    return chatInstance.sendMessageStream({ message });
 }

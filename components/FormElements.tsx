@@ -1,39 +1,22 @@
 
 import React from 'react';
-import Tooltip from './Tooltip';
-import { helpContent } from './helpContent';
 
 const commonInputClass = "w-full p-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition";
 const commonLabelClass = "block mb-1 text-sm font-medium text-gray-300";
 
-interface CommonFieldProps {
+interface InputProps {
   id: string;
   label: string;
-  sectionId: string;
-  fieldId: string;
-}
-
-const LabelWithTooltip: React.FC<{ htmlFor?: string; className?: string; sectionId: string; fieldId: string; label: string }> = ({ htmlFor, className, sectionId, fieldId, label }) => {
-  const helpText = (helpContent[sectionId] as any)?.[fieldId] as string | undefined;
-
-  return (
-    <label htmlFor={htmlFor} className={`${className} flex items-center`}>
-      <span>{label}</span>
-      {helpText && <Tooltip content={helpText} />}
-    </label>
-  );
-};
-
-
-interface InputProps extends CommonFieldProps {
   value: string;
   placeholder?: string;
+  description?: string;
   onChange: (value: string) => void;
 }
 
-export const TextInput: React.FC<InputProps> = ({ id, label, value, placeholder, onChange, sectionId, fieldId }) => (
+export const TextInput: React.FC<InputProps> = ({ id, label, value, placeholder, description, onChange }) => (
   <div>
-    <LabelWithTooltip htmlFor={id} className={commonLabelClass} label={label} sectionId={sectionId} fieldId={fieldId} />
+    <label htmlFor={id} className={commonLabelClass}>{label}</label>
+    {description && <p className="text-xs text-gray-400 mb-2">{description}</p>}
     <input
       type="text"
       id={id}
@@ -45,9 +28,10 @@ export const TextInput: React.FC<InputProps> = ({ id, label, value, placeholder,
   </div>
 );
 
-export const TextArea: React.FC<InputProps> = ({ id, label, value, placeholder, onChange, sectionId, fieldId }) => (
+export const TextArea: React.FC<InputProps> = ({ id, label, value, placeholder, description, onChange }) => (
   <div>
-    <LabelWithTooltip htmlFor={id} className={commonLabelClass} label={label} sectionId={sectionId} fieldId={fieldId} />
+    <label htmlFor={id} className={commonLabelClass}>{label}</label>
+    {description && <p className="text-xs text-gray-400 mb-2">{description}</p>}
     <textarea
       id={id}
       value={value}
@@ -63,9 +47,10 @@ interface SelectProps extends InputProps {
   options: { value: string; label: string }[];
 }
 
-export const SelectInput: React.FC<SelectProps> = ({ id, label, value, options, onChange, sectionId, fieldId }) => (
+export const SelectInput: React.FC<SelectProps> = ({ id, label, value, options, description, onChange }) => (
   <div>
-    <LabelWithTooltip htmlFor={id} className={commonLabelClass} label={label} sectionId={sectionId} fieldId={fieldId} />
+    <label htmlFor={id} className={commonLabelClass}>{label}</label>
+    {description && <p className="text-xs text-gray-400 mb-2">{description}</p>}
     <select
       id={id}
       value={value}
@@ -80,13 +65,16 @@ export const SelectInput: React.FC<SelectProps> = ({ id, label, value, options, 
   </div>
 );
 
-interface CheckboxGroupProps extends CommonFieldProps {
+interface CheckboxGroupProps {
+  id: string;
+  label: string;
   value: string[];
   options: { value: string; label: string }[];
+  description?: string;
   onChange: (value: string[]) => void;
 }
 
-export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({ id, label, value, options, onChange, sectionId, fieldId }) => {
+export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({ id, label, value, options, description, onChange }) => {
   const handleChange = (optionValue: string) => {
     const newValue = value.includes(optionValue)
       ? value.filter(v => v !== optionValue)
@@ -96,7 +84,8 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({ id, label, value, 
 
   return (
     <div>
-      <LabelWithTooltip className={commonLabelClass} label={label} sectionId={sectionId} fieldId={fieldId} />
+      <label className={commonLabelClass}>{label}</label>
+      {description && <p className="text-xs text-gray-400 mb-2">{description}</p>}
       <div className="space-y-2 mt-2">
         {options.map(option => (
           <label key={option.value} htmlFor={`${id}-${option.value}`} className="flex items-center space-x-3 cursor-pointer">
@@ -115,31 +104,26 @@ export const CheckboxGroup: React.FC<CheckboxGroupProps> = ({ id, label, value, 
   );
 };
 
-interface SingleCheckboxProps extends CommonFieldProps {
+interface SingleCheckboxProps {
+  id: string;
+  label: string;
   value: boolean;
   description?: string;
   onChange: (value: boolean) => void;
 }
 
-export const SingleCheckbox: React.FC<SingleCheckboxProps> = ({ id, label, value, description, onChange, sectionId, fieldId }) => {
-    const helpText = (helpContent[sectionId] as any)?.[fieldId] as string | undefined;
-
-    return (
-        <div className="flex items-start space-x-3 bg-gray-700/50 p-3 rounded-md">
-            <input
-                type="checkbox"
-                id={id}
-                checked={!!value}
-                onChange={(e) => onChange(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-500 bg-gray-800 text-purple-600 focus:ring-purple-500 mt-1 flex-shrink-0"
-            />
-            <label htmlFor={id} className="cursor-pointer">
-                <div className="flex items-center">
-                    <span className="font-semibold text-gray-200">{label}</span>
-                    {helpText && <Tooltip content={helpText} />}
-                </div>
-                {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
-            </label>
-        </div>
-    );
-}
+export const SingleCheckbox: React.FC<SingleCheckboxProps> = ({ id, label, value, description, onChange }) => (
+    <div className="flex items-start space-x-3 bg-gray-700/50 p-3 rounded-md">
+        <input
+            type="checkbox"
+            id={id}
+            checked={!!value}
+            onChange={(e) => onChange(e.target.checked)}
+            className="h-5 w-5 rounded border-gray-500 bg-gray-800 text-purple-600 focus:ring-purple-500 mt-1 flex-shrink-0"
+        />
+        <label htmlFor={id} className="cursor-pointer">
+            <span className="font-semibold text-gray-200">{label}</span>
+            {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
+        </label>
+    </div>
+);

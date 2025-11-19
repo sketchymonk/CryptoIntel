@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SavedAnalysis } from '../types';
 
@@ -28,7 +29,7 @@ const SavedAnalysesModal: React.FC<SavedAnalysesModalProps> = ({ isOpen, onClose
       >
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700 flex-shrink-0">
-          <h2 className="text-xl font-bold text-purple-400">Saved Analyses</h2>
+          <h2 className="text-xl font-bold text-purple-400">Saved Items</h2>
           <button 
             onClick={onClose} 
             className="text-gray-400 hover:text-white text-3xl leading-none font-bold"
@@ -46,34 +47,42 @@ const SavedAnalysesModal: React.FC<SavedAnalysesModalProps> = ({ isOpen, onClose
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h4a2 2 0 002-2V7a2 2 0 00-2-2h-4a2 2 0 00-2 2z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 7V3m0 18v-4" />
                </svg>
-              <p className="text-lg">No saved analyses yet.</p>
-              <p className="text-sm">Run an analysis and click "Save Analysis" to see it here.</p>
+              <p className="text-lg">No saved items yet.</p>
+              <p className="text-sm">Generate a prompt or run an analysis to save.</p>
             </div>
           ) : (
-            analyses.map(analysis => (
-              <div key={analysis.id} className="bg-gray-700/50 p-3 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-200">{analysis.title}</h3>
-                  <p className="text-sm text-gray-400">
-                    Saved on: {new Date(analysis.createdAt).toLocaleString()}
-                  </p>
+            analyses.map(analysis => {
+              const isFullAnalysis = !!analysis.geminiResponse;
+              return (
+                <div key={analysis.id} className="bg-gray-700/50 p-3 rounded-lg flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-gray-200">{analysis.title}</h3>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isFullAnalysis ? 'bg-teal-900 text-teal-300 border border-teal-700' : 'bg-indigo-900 text-indigo-300 border border-indigo-700'}`}>
+                            {isFullAnalysis ? 'ANALYSIS' : 'PROMPT'}
+                        </span>
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      Saved on: {new Date(analysis.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 self-end sm:self-center">
+                    <button 
+                      onClick={() => onLoad(analysis)} 
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
+                    >
+                      Load
+                    </button>
+                    <button 
+                      onClick={() => onDelete(analysis.id)} 
+                      className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2 self-end sm:self-center">
-                  <button 
-                    onClick={() => onLoad(analysis)} 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
-                  >
-                    Load
-                  </button>
-                  <button 
-                    onClick={() => onDelete(analysis.id)} 
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
