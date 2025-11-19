@@ -106,116 +106,138 @@ export const sections: FormSection[] = [
     id: 'output',
     title: '4. Desired Report Output',
     fields: [
-      { id: 'structure', label: 'Structure', type: 'text', placeholder: 'Structured report with sections...' },
-      {
-        id: 'executiveSummary',
-        label: 'Include an Executive Summary?',
-        type: 'select',
-        options: [
-          { value: 'Yes', label: 'Yes' },
-          { value: 'No', label: 'No' },
-        ],
-      },
-      {
-        id: 'depth',
-        label: 'Level of Depth',
-        type: 'select',
-        options: [
-          { value: 'Level 1', label: 'Level 1: Executive summary' },
-          { value: 'Level 2', label: 'Level 2: Medium-depth report' },
-          { value: 'Level 3', label: 'Level 3: Comprehensive deep dive' },
-        ],
-      },
-      {
-        id: 'contentElements',
-        label: 'Content Elements',
-        type: 'checkbox',
-        options: [
-          { value: 'trends', label: 'Key Trends & Developments' },
-          { value: 'dataCharts', label: 'Statistical Data & Charts' },
-          { value: 'caseStudies', label: 'Case Studies/Examples' },
-          { value: 'players', label: 'Major Players/Organizations' },
-          { value: 'viewpoints', label: 'Opposing Viewpoints/Debates' },
-          { value: 'predictions', label: 'Expert Opinions/Predictions' },
-          { value: 'implications', label: 'Policy/Regulatory Implications' },
-          { value: 'alphaSignals', label: 'Alpha Signals & Unfair Advantages' },
-        ],
-      },
-      {
-        id: 'visualizations',
-        label: 'Visualization Preferences',
-        type: 'checkbox',
-        options: [
-            { value: 'Price/Volume charts', label: 'Price/Volume charts' },
-            { value: 'TVL/Fee heatmaps', label: 'TVL/Fee heatmaps' },
-            { value: 'Wallet cohort flows', label: 'Wallet cohort flows' },
-            { value: 'Unlock timelines', label: 'Unlock timelines' },
-            { value: 'Network graphs', label: 'Network graphs' },
-            { value: 'RSI/MACD indicators', label: 'RSI/MACD indicators' },
-        ]
-      },
-      { id: 'targetLength', label: 'Target Length (approximate)', type: 'text', placeholder: 'e.g., 1,500–3,000 words' },
-      {
-        id: 'citationStyle',
-        label: 'Citation Style',
-        type: 'select',
-        options: [
-            { value: 'APA', label: 'APA' },
-            { value: 'Chicago', label: 'Chicago' },
-            { value: 'Inline links', label: 'Inline links' },
-            { value: 'Footnotes', label: 'Footnotes' },
-        ]
-      },
+        {
+          id: 'structure',
+          label: 'Report Structure & Key Sections',
+          type: 'checkbox',
+          options: [
+            { value: 'executive_summary', label: 'Executive Summary' },
+            { value: 'tldr_for_novices', label: 'TLDR for Novices' },
+            { value: 'tokenomics_deep_dive', label: 'Tokenomics Deep Dive' },
+            { value: 'onchain_metrics', label: 'On-chain Metrics & Analysis' },
+            { value: 'team_background', label: 'Team & Founder Background' },
+            { value: 'competitive_landscape', label: 'Competitive Landscape' },
+            { value: 'risk_assessment', label: 'Risk Assessment' },
+            { value: 'investment_thesis', label: 'Investment Thesis (Bull vs. Bear)' },
+            { value: 'price_prediction', label: 'Price Prediction / Valuation' },
+            { value: 'audit_log', label: 'Full Data Provenance Audit Log' },
+          ]
+        },
+        {
+          id: 'format',
+          label: 'Format',
+          type: 'select',
+          options: [
+            { value: 'markdown', label: 'Markdown Report' },
+            { value: 'json', label: 'JSON Data' },
+            { value: 'summary', label: 'Bulleted Summary' },
+            { value: 'slide_deck', label: 'Slide Deck (Markdown)' },
+            { value: 'pdf_structure', label: 'Formal PDF Structure' },
+          ]
+        },
+        {
+          id: 'tone',
+          label: 'Tone of Voice',
+          type: 'select',
+          options: [
+            { value: 'formal', label: 'Formal & Academic' },
+            { value: 'neutral', label: 'Neutral & Objective' },
+            { value: 'opinionated', label: 'Slightly Opinionated (with justifications)' },
+          ]
+        },
+        { id: 'length', label: 'Desired Length', type: 'text', placeholder: 'e.g., ~1500 words' },
+        {
+          id: 'visuals',
+          label: 'Required Visuals',
+          type: 'checkbox',
+          options: [
+            { value: 'charts', label: 'Charts (e.g., price, volume)' },
+            { value: 'tables', label: 'Tables (for comparative data)' },
+            { value: 'diagrams', label: 'Diagrams (for token flows)' },
+            { value: 'onchain_activity_charts', label: 'On-chain Activity Charts' },
+            { value: 'competitor_comparison_graphs', label: 'Competitor Comparison Graphs' },
+          ]
+        },
     ],
   },
   {
-    id: 'format',
-    title: '5. Output Format Preferences',
+    id: 'risk_assessment',
+    title: '5. Risk Assessment & Stress Testing',
     fields: [
-        {
-            id: 'writingFormat',
-            label: 'Preferred Writing Format',
-            type: 'select',
-            options: [
-              { value: 'Markdown-formatted report', label: 'Markdown Report' },
-              { value: 'Investment Memo', label: 'Investment Memo' },
-              { value: 'Academic Paper', label: 'Academic Paper' },
-              { value: 'White Paper', label: 'White Paper' },
-            ],
-          },
-          {
-            id: 'writingPerspective',
-            label: 'Preferred Writing Perspective',
-            type: 'select',
-            options: [
-              { value: 'Third-person', label: 'Third-person' },
-              { value: 'First-person', label: 'First-person' },
-              { value: 'Neutral/Formal Tone', label: 'Neutral/Formal Tone' },
-              { value: 'Narrative Style', label: 'Narrative Style' },
-            ],
-          },
+      {
+        id: 'key_risks',
+        label: 'Key Risks to Investigate',
+        type: 'checkbox',
+        options: [
+          { value: 'market_risk', label: 'Market Risk (Volatility, Liquidity)' },
+          { value: 'tech_risk', label: 'Technology Risk (Bugs, Exploits)' },
+          { value: 'regulatory_risk', label: 'Regulatory Risk' },
+          { value: 'centralization_risk', label: 'Centralization Risk' },
+          { value: 'competitor_risk', label: 'Competitor Risk' },
+        ]
+      },
+      { id: 'stress_scenarios', label: 'Stress Test Scenarios', type: 'textarea', placeholder: 'e.g., 51% attack, major exchange delisting, key developer departure' },
+      { id: 'black_swans', label: 'Potential Black Swan Events', type: 'textarea', placeholder: 'Unforeseen high-impact events to consider' },
     ]
   },
   {
-    id: 'cryptoModules',
-    title: '8. Crypto-Specific Modules',
+    id: 'asset_sourcing',
+    title: '6. Asset Identification & Sources',
     fields: [
-        {
-            id: 'modules',
-            label: 'Include Modules (check all required)',
-            type: 'checkbox',
-            options: [
-              { value: 'tokenomics', label: 'Tokenomics and Supply Mechanics' },
-              { value: 'onChain', label: 'On-Chain Activity and Adoption' },
-              { value: 'marketStructure', label: 'Market Structure, Liquidity, and Derivatives' },
-              { value: 'security', label: 'Security, Audits, and Incidents' },
-              { value: 'governance', label: 'Governance and Treasury' },
-              { value: 'competitive', label: 'Competitive Landscape and Moat' },
-              { value: 'newsflow', label: 'Newsflow, Narratives, and Catalyst Calendar' },
-              { value: 'social', label: 'Social and Sentiment Intelligence' },
-              { value: 'technical', label: 'Technical/Chart Analysis' },
-            ],
-          },
+      { id: 'coingecko_id', label: 'CoinGecko ID', type: 'text', placeholder: 'e.g., ethereum' },
+      { id: 'coinmarketcap_id', label: 'CoinMarketCap ID', type: 'text', placeholder: 'e.g., ethereum' },
+      { id: 'defillama_slug', label: 'DeFiLlama Slug', type: 'text', placeholder: 'e.g., ethereum' },
+      { id: 'contracts', label: 'Key Contract Addresses (chain:address)', type: 'textarea', placeholder: 'e.g., ethereum:0x123..., arbitrum:0x456...' },
+      { id: 'price_sources', label: 'Preferred Price Sources', type: 'textarea', placeholder: 'e.g., Binance, Coinbase, Kraken' },
+      { id: 'supply_sources', label: 'Preferred Supply Sources', type: 'textarea', placeholder: 'e.g., Protocol API, CoinGecko, Dune' },
+      { id: 'onchain_sources', label: 'Preferred On-chain Sources', type: 'textarea', placeholder: 'e.g., Etherscan API, Subgraph, Flipside' },
+      { id: 'social_sources', label: 'Preferred Social Sources', type: 'textarea', placeholder: 'e.g., X/Twitter API, Santiment, Reddit' },
+    ]
+  },
+  {
+    id: 'quality_guardrails',
+    title: '7. Data Quality Guardrails',
+    fields: [
+      {
+        id: 'guardrail_preset',
+        label: 'Guardrail Preset',
+        type: 'select',
+        options: [
+          { value: 'custom', label: 'Custom (configure below)' },
+          { value: 'strict', label: 'Strict Defaults (Recommended)' },
+          { value: 'loose', label: 'Web Scraping (Looser Guardrails)' },
+        ]
+      },
+      { id: 'price_freshness', label: 'Max Price Age (seconds)', type: 'text', placeholder: 'e.g., 60' },
+      { id: 'supply_freshness', label: 'Max Supply Age (seconds)', type: 'text', placeholder: 'e.g., 86400' },
+      { id: 'volume_freshness', label: 'Max Volume Age (seconds)', type: 'text', placeholder: 'e.g., 3600' },
+      { id: 'onchain_freshness', label: 'Max On-chain Data Age (seconds)', type: 'text', placeholder: 'e.g., 7200' },
+      { id: 'social_freshness', label: 'Max Social Data Age (seconds)', type: 'text', placeholder: 'e.g., 7200' },
+      { id: 'dev_freshness', label: 'Max Dev Activity Age (seconds)', type: 'text', placeholder: 'e.g., 86400' },
+      { id: 'min_sources', label: 'Min. Consensus Sources', type: 'text', placeholder: 'e.g., 3' },
+      {
+        id: 'consensus_method',
+        label: 'Consensus Method',
+        type: 'select',
+        options: [
+          { value: '', label: 'Select Method' },
+          { value: 'median', label: 'Median' },
+          { value: 'mean', label: 'Mean' },
+        ]
+      },
+      { id: 'price_deviation', label: 'Max Price Relative Deviation', type: 'text', placeholder: 'e.g., 0.01 (for 1%)' },
+      { id: 'supply_deviation', label: 'Max Supply Relative Deviation', type: 'text', placeholder: 'e.g., 0.02' },
+      { id: 'volume_deviation', label: 'Max Volume Relative Deviation', type: 'text', placeholder: 'e.g., 0.15' },
+      {
+        id: 'outlier_rule',
+        label: 'Outlier Rule',
+        type: 'select',
+        options: [
+          { value: '', label: 'Select Rule' },
+          { value: 'MAD', label: 'Median Absolute Deviation (MAD)' },
+          { value: 'IQR', label: 'Interquartile Range (IQR)' },
+        ]
+      },
     ]
   }
 ];

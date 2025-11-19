@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createChatSession, sendMessageStream } from '../services/geminiService';
-import type { Chat } from '@google/genai';
+import { Chat, GenerateContentResponse } from '@google/genai';
 import { ChatMessage } from '../types';
 
 interface ChatBotProps {
@@ -8,108 +8,124 @@ interface ChatBotProps {
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({ onClose }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+      { role: 'model', text: 'Hi! I can help you refine your crypto research strategy. Ask me anything.' }
+  ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const chatRef = useRef<Chat | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
 
+  // Initialize chat once
   useEffect(() => {
-    chatRef.current = createChatSession();
-    setMessages([{ role: 'model', text: 'Hello! How can I help you today?' }]);
+      if (!chatRef.current) {
+          try {
+            chatRef.current = createChatSession();
+          } catch (e) {
+              console.error("Chat init failed:", e);
+              setMessages(prev => [...prev, { role: 'model', text: 'Error: API Key missing or invalid.' }]);
+          }
+      }
   }, []);
 
+  // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!input.trim() || isLoading || !chatRef.current) return;
 
-    const userMessage: ChatMessage = { role: 'user', text: input };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
+      const userMsg = input;
+      setInput('');
+      setIsLoading(true);
+      
+      setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+      
+      // Add placeholder for model response
+      setMessages(prev => [...prev, { role: 'model', text: '' }]);
 
-    let fullResponse = '';
-    const modelMessage: ChatMessage = { role: 'model', text: '...' };
-    // Add the model message placeholder immediately
-    setMessages(prev => [...prev, modelMessage]);
-
-    try {
-      const stream = await sendMessageStream(chatRef.current!, userMessage.text);
-      let firstChunk = true;
-      for await (const chunk of stream) {
-        fullResponse += chunk.text;
-        if (firstChunk) {
-            // Replace placeholder with the start of the actual response
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1].text = fullResponse;
-                return newMessages;
-            });
-            firstChunk = false;
-        } else {
-            // Update the last message with the appended text
-            setMessages(prev => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1].text = fullResponse;
-                return newMessages;
-            });
-        }
+      try {
+          const stream = await sendMessageStream(chatRef.current, userMsg);
+          
+          let fullText = '';
+          for await (const chunk of stream) {
+              const contentChunk = chunk as GenerateContentResponse;
+              if (contentChunk.text) {
+                  fullText += contentChunk.text;
+                  
+                  setMessages(prev => {
+                      const newArr = [...prev];
+                      // Update the last message (model's placeholder)
+                      if (newArr.length > 0) {
+                          newArr[newArr.length - 1] = { role: 'model', text: fullText };
+                      }
+                      return newArr;
+                  });
+              }
+          }
+      } catch (error) {
+          console.error("Chat error", error);
+          setMessages(prev => {
+              const newArr = [...prev];
+              newArr[newArr.length - 1] = { role: 'model', text: 'Error: Could not connect to Gemini.' };
+              return newArr;
+          });
+      } finally {
+          setIsLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => {
-        const newMessages = [...prev];
-        const lastMsg = newMessages[newMessages.length - 1];
-        if (lastMsg.role === 'model') {
-            lastMsg.text = "Sorry, something went wrong. Please try again.";
-        }
-        return newMessages;
-      });
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
-    <div className="fixed bottom-8 right-8 w-full max-w-md h-[70vh] max-h-[600px] bg-gray-800 rounded-lg shadow-2xl flex flex-col z-50 border border-gray-700">
-      {/* Header */}
-      <div className="flex justify-between items-center p-3 bg-gray-700 rounded-t-lg">
-        <h3 className="font-bold text-white">Gemini Chat</h3>
-        <button onClick={onClose} className="text-gray-300 hover:text-white text-2xl leading-none font-bold">&times;</button>
+    <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-gray-800 rounded-xl shadow-2xl border border-gray-600 flex flex-col z-50 overflow-hidden">
+      <div className="bg-purple-700 p-4 flex justify-between items-center shadow-md">
+        <h3 className="font-bold text-white flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-400 rounded-full shadow-sm"></span>
+            Research Assistant
+        </h3>
+        <button onClick={onClose} className="text-white hover:text-gray-200 font-bold text-xl leading-none">&times;</button>
       </div>
-
-      {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex items-end gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-xs md:max-w-sm lg:max-w-md px-3 py-2 rounded-lg ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-200'}`}>
-              <p className="text-sm break-words">{msg.text}</p>
-            </div>
+      
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900 scrollbar-thin scrollbar-thumb-gray-700">
+        {messages.map((m, i) => (
+          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+             <div className={`max-w-[85%] p-3 rounded-lg text-sm leading-relaxed ${
+                 m.role === 'user' 
+                 ? 'bg-blue-600 text-white rounded-br-none shadow-md' 
+                 : 'bg-gray-700 text-gray-200 rounded-bl-none border border-gray-600'
+             }`}>
+                 {m.text}
+             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
+        {isLoading && messages.length > 0 && messages[messages.length - 1].text === '' && (
+            <div className="flex justify-start">
+                 <div className="bg-gray-700 p-3 rounded-lg rounded-bl-none flex gap-1">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></span>
+                 </div>
+            </div>
+        )}
+        <div ref={endRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-3 border-t border-gray-700">
-        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask anything..."
-            className="flex-1 bg-gray-700 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-            disabled={isLoading}
-            aria-label="Chat input"
-          />
-          <button type="submit" disabled={isLoading || !input.trim()} className="bg-purple-600 text-white px-4 py-2 rounded-md disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors font-semibold">
-            {isLoading ? '...' : 'Send'}
-          </button>
-        </form>
-      </div>
+      <form onSubmit={handleSubmit} className="p-3 bg-gray-800 border-t border-gray-700 flex gap-2">
+        <input 
+            value={input} 
+            onChange={e => setInput(e.target.value)}
+            placeholder="Type a message..." 
+            className="flex-1 bg-gray-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 border border-gray-600 placeholder-gray-400"
+        />
+        <button 
+            type="submit" 
+            disabled={isLoading || !input.trim()}
+            className="bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 rounded-lg text-sm font-bold transition-colors shadow-sm"
+        >
+            Send
+        </button>
+      </form>
     </div>
   );
 };

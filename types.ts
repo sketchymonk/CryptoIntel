@@ -1,9 +1,10 @@
 export interface FormField {
     id: string;
     label: string;
-    type: 'text' | 'textarea' | 'select' | 'checkbox';
+    type: 'text' | 'textarea' | 'select' | 'checkbox' | 'single_checkbox';
     placeholder?: string;
     options?: { value: string; label: string }[];
+    description?: string;
 }
 
 export interface FormSection {
@@ -33,4 +34,22 @@ export interface AnalysisResult {
 export interface ChatMessage {
     role: 'user' | 'model';
     text: string;
+}
+
+export interface SavedAnalysis {
+  id: string;
+  title: string;
+  createdAt: string;
+  formData: FormData;
+  generatedPrompt: string;
+  geminiResponse: string;
+  groundingChunks?: GroundingChunk[];
+  analysisType: 'deep' | 'grounded';
+}
+
+export interface ResearchTemplate {
+  id: string;
+  name: string;
+  description: string;
+  data: Partial<FormData>;
 }
